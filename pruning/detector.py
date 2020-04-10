@@ -9,7 +9,7 @@ import torch
 from copy import deepcopy
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
-from pruning.utils import weight_prune, plot_weights
+from pruning.utils import weight_prune, plot_weights,filter_prune
 import time
 
 
@@ -58,6 +58,8 @@ class Detector:
         # print(mask[0])
         # print(mask[0].shape)
         # print(len(mask))
+        pruned_net.set_masks(mask,True)
+        mask = filter_prune(pruned_net, 50)
         pruned_net.set_masks(mask)
         test_loss = 0
         correct = 0

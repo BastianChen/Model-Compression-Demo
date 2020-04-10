@@ -87,11 +87,22 @@ class MyNet(nn.Module):
     def get_loss(self, output, label):
         return self.loss(output, label)
 
-    def set_masks(self, masks):
+    def set_masks(self, masks,isLinear=False):
         # Should be a less manual way to set masks
         # Leave it for the future
-        self.conv1.set_mask(masks[0])
-        self.conv2.set_mask(masks[1])
-        self.conv3.set_mask(masks[2])
-        self.linear1.set_mask(masks[3])
-        self.linear2.set_mask(masks[4])
+        if isLinear:
+            self.linear1.set_mask(masks[0])
+            self.linear2.set_mask(masks[1])
+        else:
+            self.conv1.set_mask(torch.from_numpy(masks[0]))
+            self.conv2.set_mask(torch.from_numpy(masks[1]))
+            self.conv3.set_mask(torch.from_numpy(masks[2]))
+
+
+
+if __name__ == '__main__':
+    net = MyNet()
+    for p in net.conv1.parameters():
+        print(p.data.size())
+    for p in net.linear1.parameters():
+        print(p.data.size())
