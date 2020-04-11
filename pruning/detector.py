@@ -48,10 +48,10 @@ class Detector:
             test_loss, correct, len(self.test_data.dataset),
             100. * correct / len(self.test_data.dataset)))
 
-        print("\n=====Pruning=======\n")
-        pruned_net = deepcopy(self.net)
-        self.pruning(pruned_net)
-        return self.net, pruned_net
+        # print("\n=====Pruning=======\n")
+        # pruned_net = deepcopy(self.net)
+        # self.pruning(pruned_net)
+        # return self.net, pruned_net
 
     def pruning(self, pruned_net):
         mask = weight_prune(pruned_net, 60)
@@ -78,8 +78,13 @@ class Detector:
 
 
 if __name__ == '__main__':
-    detector = Detector("models/net.pth")
-    net, pruned_net = detector.detect()
+    detector1 = Detector("models/net.pth")
+    detector1.detect()
+    detector2 = Detector("models/pruned_net_without_conv.pth")
+    detector2.detect()
+    detector3 = Detector("models/pruned_net_with_conv.pth")
+    detector3.detect()
+    # net, pruned_net = detector.detect()
     # torch.save(pruned_net.state_dict(), "models/pruned_net.pth")
     # plot_weights(net)
     # plot_weights(pruned_net)
