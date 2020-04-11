@@ -9,7 +9,7 @@ import torch
 from copy import deepcopy
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
-from pruning.utils import weight_prune, plot_weights,filter_prune
+from pruning.utils import weight_prune, plot_weights, filter_prune
 import time
 
 
@@ -41,26 +41,22 @@ class Detector:
                 correct += pred.eq(label.view_as(pred)).sum().item()
 
         end = time.time()
-        print(f"total time:{end-start}")
+        print(f"total time:{end - start}")
         test_loss /= len(self.test_data.dataset)
 
         print('\nTest: average loss: {:.4f}, accuracy: {}/{} ({:.0f}%)'.format(
             test_loss, correct, len(self.test_data.dataset),
             100. * correct / len(self.test_data.dataset)))
 
-        print("\n=====Pruning 60%=======\n")
+        print("\n=====Pruning=======\n")
         pruned_net = deepcopy(self.net)
         self.pruning(pruned_net)
         return self.net, pruned_net
 
     def pruning(self, pruned_net):
         mask = weight_prune(pruned_net, 60)
-        # print(mask[0])
-        # print(mask[0].shape)
-        # print(len(mask))
-        pruned_net.set_masks(mask,True)
-        mask = filter_prune(pruned_net, 50)
-        pruned_net.set_masks(mask)
+        pruned_net.set_masks(mask, True)
+        filter_prune(pruned_net, 50)
         test_loss = 0
         correct = 0
         start = time.time()

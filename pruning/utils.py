@@ -41,7 +41,10 @@ def weight_prune(model, pruning_perc):
                 idx += 1
     return masks
 
+
 """Reference https://github.com/zepx/pytorch-weight-prune/"""
+
+
 def prune_rate(model, verbose=False):
     """
     Print out prune rate for each layer and the whole network
@@ -61,17 +64,17 @@ def prune_rate(model, verbose=False):
         # only pruning linear and conv layers
         if len(parameter.data.size()) != 1:
             layer_id += 1
-            zero_param_this_layer =                 np.count_nonzero(parameter.cpu().data.numpy()==0)
+            zero_param_this_layer = np.count_nonzero(parameter.cpu().data.numpy() == 0)
             nb_zero_param += zero_param_this_layer
 
             if verbose:
-                print("Layer {} | {} layer | {:.2f}% parameters pruned"                     .format(
-                        layer_id,
-                        'Conv' if len(parameter.data.size()) == 4 \
-                            else 'Linear',
-                        100.*zero_param_this_layer/param_this_layer,
-                        ))
-    pruning_perc = 100.*nb_zero_param/total_nb_param
+                print("Layer {} | {} layer | {:.2f}% parameters pruned".format(
+                    layer_id,
+                    'Conv' if len(parameter.data.size()) == 4 \
+                        else 'Linear',
+                    100. * zero_param_this_layer / param_this_layer,
+                ))
+    pruning_perc = 100. * nb_zero_param / total_nb_param
     if verbose:
         print("Final pruning rate: {:.2f}%".format(pruning_perc))
     return pruning_perc
@@ -97,11 +100,12 @@ def arg_nonzero_min(a):
 
     # search for the smallest nonzero
     for i, e in enumerate(a):
-         if e < min_v and e != 0:
+        if e < min_v and e != 0:
             min_v = e
             min_ix = i
 
     return min_v, min_ix
+
 
 def prune_one_filter(model, masks):
     '''
@@ -118,7 +122,7 @@ def prune_one_filter(model, masks):
     values = []
     for p in model.parameters():
 
-        if len(p.data.size()) == 4: # nasty way of selecting conv layer
+        if len(p.data.size()) == 4:  # nasty way of selecting conv layer
             p_np = p.data.cpu().numpy()
 
             # construct masks if there is not
@@ -126,9 +130,11 @@ def prune_one_filter(model, masks):
                 masks.append(np.ones(p_np.shape).astype('float32'))
 
             # find the scaled l2 norm for each filter this layer
-            value_this_layer = np.square(p_np).sum(axis=1).sum(axis=1)                .sum(axis=1)/(p_np.shape[1]*p_np.shape[2]*p_np.shape[3])
+            value_this_layer = np.square(p_np).sum(axis=1).sum(axis=1).sum(axis=1) / (
+                    p_np.shape[1] * p_np.shape[2] * p_np.shape[3])
             # normalization (important)
-            value_this_layer = value_this_layer /                 np.sqrt(np.square(value_this_layer).sum())
+            value_this_layer = value_this_layer / np.sqrt(np.square(value_this_layer).sum())
+            # 找到通道值的最小值以及索引
             min_value, min_ind = arg_nonzero_min(list(value_this_layer))
             values.append([min_value, min_ind])
 
@@ -141,9 +147,9 @@ def prune_one_filter(model, masks):
     to_prune_filter_ind = int(values[to_prune_layer_ind, 1])
     masks[to_prune_layer_ind][to_prune_filter_ind] = 0.
 
-#     print('Prune filter #{} in layer #{}'.format(
-#         to_prune_filter_ind,
-#         to_prune_layer_ind))
+    #     print('Prune filter #{} in layer #{}'.format(
+    #         to_prune_filter_ind,
+    #         to_prune_layer_ind))
 
     return masks
 
@@ -160,9 +166,8 @@ def filter_prune(model, pruning_perc):
         masks = prune_one_filter(model, masks)
         model.set_masks(masks)
         current_pruning_perc = prune_rate(model, verbose=False)
-#         print('{:.2f} pruned'.format(current_pruning_perc))
+    #         print('{:.2f} pruned'.format(current_pruning_perc))
     return masks
-
 
 
 def plot_weights(model):
@@ -177,3 +182,18 @@ def plot_weights(model):
             plt.hist(w_one_dim[w_one_dim != 0], bins=50)
             num_sub_plot += 1
     plt.show()
+
+
+if __name__ == '__main__':
+    a = np.random.randn(3, 5)
+    # print(a)
+    # print(abs(a))
+    print(abs(a).flatten())
+    b = np.percentile(abs(a).flatten(), 20)
+    print(b)
+    b = np.percentile(abs(a).flatten(), 40)
+    print(b)
+    b = np.percentile(abs(a).flatten(), 60)
+    print(b)
+    b = np.percentile(abs(a).flatten(), 80)
+    print(b)
