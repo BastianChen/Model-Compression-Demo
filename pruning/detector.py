@@ -44,7 +44,7 @@ class Detector:
         print(f"total time:{end - start}")
         test_loss /= len(self.test_data.dataset)
 
-        print('\nTest: average loss: {:.4f}, accuracy: {}/{} ({:.0f}%)'.format(
+        print('Test: average loss: {:.4f}, accuracy: {}/{} ({:.0f}%)\n'.format(
             test_loss, correct, len(self.test_data.dataset),
             100. * correct / len(self.test_data.dataset)))
 
@@ -92,6 +92,9 @@ if __name__ == '__main__':
 
     for i in range(1, 10):
         amount = 0.1 * i
-        print(f"models/pruned_net_with_torch_{amount:.1f}.pth")
-        detector1 = Detector(f"models/pruned_net_with_torch_{amount:.1f}.pth")
+        print(f"models/pruned_net_with_torch_{amount:.1f}_l1.pth")
+        detector1 = Detector(f"models/pruned_net_with_torch_{amount:.1f}_l1.pth")
+        detector1.detect()
+        print(f"models/pruned_net_with_torch_{amount:.1f}_l2.pth")
+        detector1 = Detector(f"models/pruned_net_with_torch_{amount:.1f}_l2.pth")
         detector1.detect()
