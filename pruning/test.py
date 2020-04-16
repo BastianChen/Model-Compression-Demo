@@ -2,7 +2,7 @@
 # @Author : Ben 
 # @Version：V 0.1
 # @File : test.py
-# @desc :
+# @desc :使用pytorch实现基于LeNet剪枝实验
 
 
 import torch
