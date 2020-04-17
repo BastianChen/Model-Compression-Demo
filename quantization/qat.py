@@ -1,21 +1,33 @@
-# @Time : 2020-04-17 10:39 
+# @Time : 2020-04-17 17:06 
 # @Author : Ben 
 # @Version：V 0.1
-# @File : trainer.py
-# @desc :
+# @File : qat.py
+# @desc :Quantization-aware training(量化感知训练提高量化后模型的精度)
 
 import torch
+from torch import nn
+from quantization.nets import MyNet
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import math
-from quantization.nets import MyNet
+import os
+
+import torch
+from torch import nn
+from nets import MyNet
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+import math
+import os
 
 
-class Trainer:
-    def __init__(self, save_path):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.save_path = save_path
+class QAT:
+    def __init__(self, net_path):
+        self.device = "cpu" if torch.cuda.is_available() else "cpu"
         self.net = MyNet().to(self.device)
+        self.net.load_state_dict(torch.load(net_path, map_location=self.device))
+        self.net.eval()
+        self.net.fuse_model()
         self.trans = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize([0.5], [0.5])
@@ -23,9 +35,10 @@ class Trainer:
         self.train_data = DataLoader(datasets.MNIST("../datasets/", train=True, transform=self.trans, download=False),
                                      batch_size=100, shuffle=True, drop_last=True)
         self.optimizer = torch.optim.Adam(self.net.parameters())
-        self.net.train()
+        self.net.qconfig = torch.quantization.get_default_qat_qconfig('fbgemm')
 
     def train(self):
+        torch.quantization.prepare_qat(self.net, inplace=True)
         for epoch in range(1, 3):
             total = 0
             for i, (data, label) in enumerate(self.train_data):
@@ -41,11 +54,13 @@ class Trainer:
                 print("\rTrain epoch %d: %d/%d, [%-51s] %d%%" %
                       (epoch, total, len(self.train_data.dataset),
                        '-' * progress + '>', progress * 2), end='')
-            torch.save(self.net.state_dict(), self.save_path)
-            # example = torch.Tensor(1, 1, 28, 28).to(self.device)
-            # torch.jit.save(torch.jit.trace(self.net,example), self.save_path)
+        # Check the accuracy after each epoch
+        self.net = torch.quantization.convert(self.net.eval(), inplace=False)
+        torch.jit.save(torch.jit.script(self.net), "models/net_convert_qat.pth")
+        # torch.jit.save(torch.jit.trace(self.net, example), "models/net_convert.pth")
+        print('\nSize (MB):', os.path.getsize("models/net_convert.pth") / 1e6)
 
 
 if __name__ == '__main__':
-    trainer = Trainer("models/net.pth")
-    trainer.train()
+    qat = QAT("models/net.pth")
+    qat.train()
