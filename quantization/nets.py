@@ -31,11 +31,15 @@ class MyNet(nn.Module):
         self.linear2 = nn.Linear(128, 10)
         self.quant = QuantStub()
         self.dequant = DeQuantStub()
+        self.skip_add = nn.quantized.FloatFunctional()
         self.loss = nn.CrossEntropyLoss()
 
     def forward(self, data):
         data = self.quant(data)
-        out = self.maxpool1(self.relu1(self.bn1(self.conv1(data))))
+        out = self.relu1(self.bn1(self.conv1(data)))
+        # data跟out的shape必须一致
+        # out = self.skip_add.add(data, out)
+        out = self.maxpool1(out)
         out = self.maxpool2(self.relu2(self.bn2(self.conv2(out))))
         out = self.relu3(self.bn3(self.conv3(out)))
         out = out.reshape(out.size(0), -1)
