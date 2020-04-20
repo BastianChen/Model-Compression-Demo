@@ -14,7 +14,7 @@ import os
 
 import torch
 from torch import nn
-from nets import MyNet
+from quantization.nets import MyNet
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import math
